@@ -50,7 +50,7 @@
  * the rights to redistribute these changes.
  *
  *	from: Mach, Revision 2.2  92/04/04  11:35:49  rpd
- *	$Id: fsys_ffs.c,v 1.5 1999/03/15 02:08:10 gord Exp $
+ *	$Id: fsys_ffs.c,v 1.6 1999/03/27 23:35:35 gord Exp $
  */
 
 
@@ -173,8 +173,9 @@ loop:
 		0, SUPERBLOCK->fs_bsize, (char *) FSYS_BUF))
     return 0;			/* XXX what return value? */
 
-  bcopy ((void *) &(((struct dinode *) FSYS_BUF)[ino % (SUPERBLOCK->fs_inopb)]),
-	 (void *) INODE, sizeof (struct dinode));
+  memmove ((void *) INODE,
+	   (void *) &(((struct dinode *) FSYS_BUF)[ino % (SUPERBLOCK->fs_inopb)]),
+	   sizeof (struct dinode));
 
   /* if we have a real file (and we're not just printing possibilities),
      then this is where we want to exit */
