@@ -50,7 +50,7 @@
  * the rights to redistribute these changes.
  *
  *	from: Mach, Revision 2.2  92/04/04  11:35:49  rpd
- *	$Id: fsys_ffs.c,v 1.7 1999/06/01 14:59:50 okuji Exp $
+ *	$Id: fsys_ffs.c,v 1.1 1999/06/24 00:03:20 okuji Exp $
  */
 
 
