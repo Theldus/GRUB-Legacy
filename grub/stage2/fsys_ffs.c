@@ -50,7 +50,7 @@
  * the rights to redistribute these changes.
  *
  *	from: Mach, Revision 2.2  92/04/04  11:35:49  rpd
- *	$Id: fsys_ffs.c,v 1.5 1999/09/06 09:41:28 okuji Exp $
+ *	$Id: fsys_ffs.c,v 1.6 1999/09/23 01:02:29 okuji Exp $
  */
 
 #ifdef FSYS_FFS
@@ -161,13 +161,13 @@ ffs_read (char *buf, int len)
 	size = len;
 
 #ifndef STAGE1_5
-      debug_fs_func = debug_fs;
+      disk_read_func = disk_read_hook;
 #endif /* STAGE1_5 */
 
       devread (fsbtodb (SUPERBLOCK, map), off, size, buf);
 
 #ifndef STAGE1_5
-      debug_fs_func = NULL;
+      disk_read_func = NULL;
 #endif /* STAGE1_5 */
 
       buf += size;
