@@ -50,10 +50,10 @@
  * the rights to redistribute these changes.
  *
  *	from: Mach, Revision 2.2  92/04/04  11:35:49  rpd
- *	$Id: fsys_ffs.c,v 1.2 1999/08/09 16:34:08 okuji Exp $
+ *	$Id: fsys_ffs.c,v 1.3 1999/08/13 14:52:37 okuji Exp $
  */
 
-
+#ifdef FSYS_FFS
 
 #include "shared.h"
 
@@ -267,3 +267,5 @@ loop:
   /* go back to main loop at top of function */
   goto loop;
 }
+
+#endif /* FSYS_FFS */
