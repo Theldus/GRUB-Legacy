@@ -50,7 +50,7 @@
  * the rights to redistribute these changes.
  *
  *	from: Mach, Revision 2.2  92/04/04  11:35:49  rpd
- *	$Id: fsys_ffs.c,v 1.6 1999/09/23 01:02:29 okuji Exp $
+ *	$Id: fsys_ffs.c,v 1.7 1999/09/29 09:28:36 okuji Exp $
  */
 
 #ifdef FSYS_FFS
@@ -240,7 +240,9 @@ loop:
     {
       if (loc >= INODE->i_size)
 	{
+#if 0
 	  putchar ('\n');
+#endif
 
 	  if (print_possibilities < 0)
 	    return 1;
