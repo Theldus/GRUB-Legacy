@@ -1,6 +1,5 @@
 /*
  *  GRUB  --  GRand Unified Bootloader
- *  Copyright (C) 1996  Erich Boleyn  <erich@uruk.org>
  *  Copyright (C) 2000, 2001  Free Software Foundation, Inc.
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -51,7 +50,7 @@
  * the rights to redistribute these changes.
  *
  *	from: Mach, Revision 2.2  92/04/04  11:35:49  rpd
- *	$Id: fsys_ffs.c,v 1.9 2001/02/02 13:31:03 okuji Exp $
+ *	$Id: fsys_ffs.c,v 1.10 2001/11/12 06:57:29 okuji Exp $
  */
 
 #ifdef FSYS_FFS
