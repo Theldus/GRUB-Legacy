@@ -50,7 +50,7 @@
  * the rights to redistribute these changes.
  *
  *	from: Mach, Revision 2.2  92/04/04  11:35:49  rpd
- *	$Id: fsys_ffs.c,v 1.6 1999/03/27 23:35:35 gord Exp $
+ *	$Id: fsys_ffs.c,v 1.7 1999/06/01 14:59:50 okuji Exp $
  */
 
 
@@ -252,7 +252,7 @@ loop:
 	  if (print_possibilities > 0)
 	    print_possibilities = -print_possibilities;
 
-	  printf ("  %s", dp->d_name);
+	  print_a_completion (dp->d_name);
 	}
 #endif /* STAGE1_5 */
     }
