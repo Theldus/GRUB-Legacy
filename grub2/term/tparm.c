@@ -76,7 +76,7 @@ typedef char grub_bool_t;
 
 #define UChar(c) ((unsigned char)(c))
 
-//MODULE_ID("$Id: tparm.c,v 1.1 2005/09/03 16:54:27 okuji Exp $")
+//MODULE_ID("$Id: tparm.c,v 1.2 2005/11/23 03:36:24 hollisb Exp $")
 
 /*
  *	char *
@@ -164,9 +164,7 @@ get_space(grub_size_t need)
     if (need > out_size) {
 	out_size = need * 2;
 	out_buff = grub_realloc(out_buff, out_size*sizeof(char));
-	if (out_buff == 0)
-	    // FIX ME! OOM, what now?
-	    ;
+	/* FIX ME! handle out_buff == 0.  */
     }
 }
 
