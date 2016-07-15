@@ -674,6 +674,13 @@ extern struct multiboot_info mbi;
 extern unsigned long saved_drive;
 extern unsigned long saved_partition;
 extern unsigned long cdrom_drive;
+
+/*
+ *  VBE Info
+ */
+extern struct vbe_mode mbi_vbe_mode;
+extern struct vbe_controller mbi_vbe_controller;
+
 #ifndef STAGE1_5
 extern unsigned long saved_mem_upper;
 extern unsigned long extended_memory;
