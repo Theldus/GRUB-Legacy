@@ -296,6 +296,14 @@ boot_func (char *arg, int flags)
 
     case KERNEL_TYPE_MULTIBOOT:
       /* Multiboot */
+      if (mbi.flags & MB_INFO_VIDEO_INFO)
+      {
+      	grub_printf("Switching video mode...");
+      	set_vbe_mode (mbi.vbe_mode | (1 << 14));
+      }
+      else
+      	grub_printf("Using 80x25 mode...");
+
       multi_boot ((int) entry_addr, (int) &mbi);
       break;
 
@@ -4671,6 +4679,145 @@ static struct builtin builtin_uppermem =
   " installed.  Any system address range maps are discarded."
 };
 
+/* vbemode. */
+static int
+vbemode_func (char *arg, int flags)
+{
+	int i;                     /* Loop index.                   */
+	int res[] = {0, 0, 0};     /* Resolution, width/height/bpp. */
+	int pos;                   /* Resolution position.          */
+	unsigned short *mode_list; /* Modes list.                   */
+	int bytesRes;              /* # of bytes desired.           */
+	int bytesFound;            /* # of bytes found.             */
+	int bytes;                 /* Current number of bytes.      */
+	int mode;                  /* # closest mode.               */
+
+	auto unsigned long vbe_far_ptr_to_linear (unsigned long);
+	unsigned long vbe_far_ptr_to_linear (unsigned long ptr)
+	{
+		unsigned short seg = (ptr >> 16);
+		unsigned short off = (ptr & 0xFFFF);
+		return (seg << 4) + off;
+	}
+
+	/* Parse resolution. */
+	pos = 0;
+	for (i = 0; i < arg[i] != '\0'; i++)
+		if (arg[i] >= '0' && arg[i] <= '9')
+			res[pos] = (res[pos] * 10) + (int)(arg[i]-'0');
+		else if(res[pos] != 0)
+			pos++;
+
+	/* Wont use VBE mode. */
+	if (res[0] == 0)
+	{
+		grub_printf("VBE Mode disabled, using 80x25 mode...");
+		return 0;
+	}
+
+	/* Wrong resolutions. */
+	if (res[1] == 0 || res[2] == 0)
+	{
+		grub_printf("Wrong input detected, using 80x25 mode...");
+		return 1;
+	}
+
+	/* Memory consumption. */
+	bytesRes = (res[0]*res[1]*res[2]) >> 3;
+	bytesFound = 0;
+	mode = 0;
+
+	grub_printf("Searching equivalent mode for resolution %dx%d %dbpp\n",
+		res[0], res[1], res[2]);
+
+  	/* Set the signature to `VBE2', to obtain VBE 3.0 information.  */
+	grub_memmove (mbi_vbe_controller.signature, "VBE2", 4);
+  
+	if (get_vbe_controller_info (&mbi_vbe_controller) != 0x004F)
+	{
+		grub_printf (" VBE BIOS is not present.\n");
+		return 0;
+	}
+
+	/* Check the version.  */
+	if (mbi_vbe_controller.version < 0x0200)
+	{
+		grub_printf (" VBE version %d.%d is not supported.\n",
+			(int) (mbi_vbe_controller.version >> 8),
+			(int) (mbi_vbe_controller.version & 0xFF));
+		return 0;
+	}
+	
+	/* Iterate probing modes.  */
+	for (mode_list
+		= (unsigned short *) vbe_far_ptr_to_linear (mbi_vbe_controller.video_mode);
+		*mode_list != 0xFFFF;
+		mode_list++)
+	{
+		/* Invalid mode. */
+		if (get_vbe_mode_info (*mode_list, &mbi_vbe_mode) != 0x004F)
+			continue;
+
+		/* LFB not supported. */
+		if ((mbi_vbe_mode.mode_attributes & 0x0081) != 0x0081)
+			continue;
+
+		bytes = (mbi_vbe_mode.x_resolution * mbi_vbe_mode.y_resolution * 
+				mbi_vbe_mode.bits_per_pixel) >> 3;
+
+		if (mbi_vbe_mode.x_resolution == res[0] && mbi_vbe_mode.y_resolution == res[1] 
+			&& mbi_vbe_mode.bits_per_pixel == res[2])
+		{
+			grub_printf("Mode 0x%x found, using choosen settings!\n", (unsigned)*mode_list);
+			grub_printf("Linear Frame Buffer at 0x%x\n",mbi_vbe_mode.phys_base);
+
+			mbi.flags           |= MB_INFO_VIDEO_INFO;
+			mbi.vbe_mode         = (unsigned)*mode_list;
+			mbi.vbe_mode_info    = (unsigned long)&mbi_vbe_mode;
+			mbi.vbe_control_info = (unsigned long)&mbi_vbe_controller;
+			return 0;
+		}
+		else if (mbi_vbe_mode.bits_per_pixel == res[2] && bytes > bytesFound &&
+			bytes < bytesRes)
+		{
+			bytesFound = bytes;
+			mode = (unsigned)*mode_list;
+		}
+	}
+
+	if (mode)
+	{
+		get_vbe_mode_info (mode, &mbi_vbe_mode);
+		grub_printf("Using the closest mode: 0x%x\n"
+			"Resolution %dx%d %dbpp\n", mode, mbi_vbe_mode.x_resolution,
+			mbi_vbe_mode.y_resolution, mbi_vbe_mode.bits_per_pixel);
+		grub_printf("Linear Frame Buffer at 0x%x\n",mbi_vbe_mode.phys_base);
+
+		mbi.flags           |= MB_INFO_VIDEO_INFO;
+		mbi.vbe_mode         = mode;
+		mbi.vbe_mode_info    = (unsigned long)&mbi_vbe_mode;
+		mbi.vbe_control_info = (unsigned long)&mbi_vbe_controller;
+	}
+	else
+	{
+		grub_printf("No video mode has been found with the specified data, using "
+			"80x25 mode.");
+	}
+}
+
+static struct builtin builtin_vbemode =
+{
+  "vbemode",
+  vbemode_func,
+  BUILTIN_CMDLINE | BUILTIN_SCRIPT | BUILTIN_MENU | BUILTIN_HELP_LIST,
+  "vbemode [MODE]",
+  "Does GRUB switch to video mode selected when booting a compatible kernel multiboot."
+  " The mode can be in format WidthxHeightxBPP like 800x600x32 or 0 if you want"
+  " to boot in 80x25 mode."
+  " If the selected mode doesnt exist, GRUB will choose the closest resolution"
+  " supported by the system with the same BPP."
+};
+
 
 /* vbeprobe */
 static int
@@ -4867,6 +5014,7 @@ struct builtin *builtin_table[] =
   &builtin_title,
   &builtin_unhide,
   &builtin_uppermem,
+  &builtin_vbemode,
   &builtin_vbeprobe,
   0
 };

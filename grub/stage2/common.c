@@ -33,6 +33,13 @@ struct multiboot_info mbi;
 unsigned long saved_drive;
 unsigned long saved_partition;
 unsigned long cdrom_drive;
+
+/*
+ *  VBE Info
+ */
+struct vbe_mode mbi_vbe_mode;
+struct vbe_controller mbi_vbe_controller;
+
 #ifndef STAGE1_5
 unsigned long saved_mem_upper;
 
